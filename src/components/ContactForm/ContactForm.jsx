@@ -1,46 +1,66 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { useState } from 'react';
+import { nanoid } from 'nanoid';
+import { Button, Form, Input, Label } from './ContactForm.styled';
 
-const ContactForm = ({ name, number, onChange, onSubmit }) => (
-  <Form onSubmit={onSubmit}>
-    <Label>
-      Name:
-      <Input
-        type="text"
-        name="name"
-        value={name}
-        onChange={onChange}
-        required
-      />
-    </Label>
+const ContactForm = ({ onFormSubmit }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    number: '',
+  });
 
-    <Label>
-      Number:
-      <Input
-        type="tel"
-        name="number"
-        value={number}
-        onChange={onChange}
-        required
-      />
-    </Label>
+  const handleChange = e => {
+    const { name, value } = e.target;
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      [name]: value,
+    }));
+  };
 
-    <Button type="submit">Add contact</Button>
-  </Form>
-);
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-const Button = styled.button`
-  width: 150px;
-`;
-const Label = styled.label`
-  display: flex;
-  flex-direction: column;
-`;
-const Input = styled.input`
-  width: 250px;
-`;
+  const handleSubmit = e => {
+    e.preventDefault();
+
+    const { name, number } = formData;
+    onFormSubmit({
+      id: nanoid(),
+      name,
+      number,
+    });
+
+    setFormData({
+      name: '',
+      number: '',
+    });
+  };
+
+  const { name, number } = formData;
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <Label>
+        Name:
+        <Input
+          type="text"
+          name="name"
+          value={name}
+          onChange={handleChange}
+          required
+        />
+      </Label>
+
+      <Label>
+        Number:
+        <Input
+          type="tel"
+          name="number"
+          value={number}
+          onChange={handleChange}
+          required
+        />
+      </Label>
+
+      <Button type="submit">Add contact</Button>
+    </Form>
+  );
+};
+
 export default ContactForm;

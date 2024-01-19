@@ -1,21 +1,20 @@
-import { useEffect, useState } from 'react';
-import { nanoid } from 'nanoid';
-import styled from 'styled-components';
+import React, { useState, useEffect } from 'react';
+import ContactForm from './ContactForm/ContactForm';
 import Filter from './Filter/Filter';
 import ContactList from './ContactList/ContactList';
-import ContactForm from './ContactForm/ContactForm';
 
 const App = () => {
   const [contacts, setContacts] = useState([]);
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
     const storedContacts = localStorage.getItem('contacts');
 
     if (storedContacts) {
-      setContacts(JSON.parse(storedContacts));
+      setContacts(prevContacts => [
+        ...prevContacts,
+        ...JSON.parse(storedContacts),
+      ]);
     }
   }, []);
 
@@ -23,33 +22,13 @@ const App = () => {
     localStorage.setItem('contacts', JSON.stringify(contacts));
   }, [contacts]);
 
-  const handleChange = e => {
-    if (e.target.name === 'name') {
-      setName(e.target.value);
-    } else if (e.target.name === 'number') {
-      setNumber(e.target.value);
-    } else if (e.target.name === 'filter') {
-      setFilter(e.target.value);
-    }
-  };
-
-  const handleSubmit = e => {
-    e.preventDefault();
-
-    if (contacts.find(contact => contact.name === name)) {
-      alert(`${name} is already in contacts.`);
+  const handleFormSubmit = newContact => {
+    if (contacts.some(contact => contact.name === newContact.name)) {
+      alert(`${newContact.name} is already in contacts`);
       return;
     }
 
-    const newContact = {
-      id: nanoid(),
-      name,
-      number,
-    };
-
     setContacts(prevContacts => [...prevContacts, newContact]);
-    setName('');
-    setNumber('');
   };
 
   const handleDelete = contactId => {
@@ -58,28 +37,22 @@ const App = () => {
     );
   };
 
-  const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filterContacts = () => {
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(filter.toLowerCase())
+    );
+  };
+
   return (
-    <Div>
+    <div>
       <h1>Phonebook</h1>
-      <ContactForm
-        name={name}
-        number={number}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
-      />
+      <ContactForm onFormSubmit={handleFormSubmit} />
 
       <h2>Contacts</h2>
-      <Filter filter={filter} onChange={handleChange} />
-      <ContactList contacts={filteredContacts} onDelete={handleDelete} />
-    </Div>
+      <Filter filter={filter} onChange={e => setFilter(e.target.value)} />
+      <ContactList contacts={filterContacts()} onDelete={handleDelete} />
+    </div>
   );
 };
-const Div = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
+
 export default App;
